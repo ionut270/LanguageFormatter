@@ -5,18 +5,19 @@ export default class Input_table extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      states:   ["s1", "f2"],
-      alphabet: ["a", "ε"],
+      states: ["s0", "s1", "f1"],
+      alphabet: ["a", "b", "ε"],
       transitions: [
-        ["f2", "f2"],
-        ["s1", "s1"],
+        ["s0", "s1", ""],
+        ["f1", "s1", "f1"],
+        ["f1", "f1", "f1"]
       ],
       editable: "",
-      err : null
+      err: null
     };
   }
 
-  componentDidUpdate(){
+  componentDidUpdate() {
     console.log(this.state)
   }
 
@@ -61,8 +62,8 @@ export default class Input_table extends React.Component {
 
   addRow = e => {
     var transitions = this.state.transitions;
-    var states      = this.state.states;
-    var alphabet    = this.state.alphabet;
+    var states = this.state.states;
+    var alphabet = this.state.alphabet;
 
     states.push("");
     transitions.push(new Array(alphabet.length));
@@ -82,22 +83,32 @@ export default class Input_table extends React.Component {
 
     let valid = true;
 
-    var states      = this.state.states;
-    var alphabet    = this.state.alphabet;
+    var states = this.state.states;
+    var alphabet = this.state.alphabet;
     var transitions = this.state.transitions;
 
-    if(transitions.length === states.length){
-      for(let i = 0 ; i < transitions.length; i++){
-        
-        if(transitions[i].length === alphabet.length){
+    var eps = alphabet.indexOf("ε")
+
+    if (transitions.length === states.length) {
+      for (let i = 0; i < transitions.length; i++) {
+
+        if (transitions[i].length === alphabet.length) {
 
           //verificam existennta fiecarei stari-
-          for(let j = 0; j<transitions[i].length; j++ ){
-            if(states.indexOf(transitions[i][j]) === -1){
-              valid = false;
-              this.setState({
-                err: "The state "+ transitions[i][j] + "does not exist !"
-              })
+          for (let j = 0; j < transitions[i].length; j++) {
+            if (states.indexOf(transitions[i][j]) === -1) {
+              //console.log("OK : State > ", eps, i, j)
+              if (j !== eps) {
+                valid = false;
+                this.setState({
+                  err: "The state " + transitions[i][j] + "does not exist !"
+                })
+              } else {
+                valid = true
+                this.setState({
+                  err: null
+                })
+              }
             }
           }
         } else {
@@ -114,17 +125,99 @@ export default class Input_table extends React.Component {
       })
     }
 
-    if(valid === true){
+    if (valid === true) {
+
+      //console.log("OK : Passed validation !");
+
       this.setState({
         err: null
       })
 
-      for(let i = 0; i < states.length; i++){
-        for(let j = 0; j < alphabet.length; j++){
-          
-        }
-      }
+      var nfa_states = [
+        [states[0]]
+      ];
 
+      var firstState = [states[0]] //firstState[0] = "s1"
+
+
+      var output = [];
+
+
+      for (let m = 0; m < nfa_states.length; m++) {
+
+        for (let j = 0; j < alphabet.length - 1; j++) { // 0 - a
+          var result = []
+          var line = [[nfa_states[m]]]
+          console.log("Inainte de crash!",nfa_states[m],m,nfa_states)
+          for (let i = 0; i < nfa_states[m].length; i++) { // 0 - s1 pot fi mai multe
+            var position = states.indexOf(nfa_states[m][i]); // 0
+            result.push(transitions[position][j]); // transitions[0][0] = f2
+          }
+          // - inchiderea la epsilon -
+          var nonEpsLen = result.length
+          for (let i = 0; i < nonEpsLen; i++) {
+            // luam fiecare din astea si verificam unde merge cu epsilon si il adaugam la results
+
+            var position = states.indexOf(result[i]); // f2 => 2
+
+            // we need check if what we try to push isn't allready in our automate
+
+            if (transitions[position] && transitions[position][eps]) { // daca se duce undeva cu eps
+
+              // if(result.indexOf(transitions[position][eps]) > 0 ){
+                result.push(transitions[position][eps])
+                console.log("OK : Epsilon transition > ", transitions[position][eps], transitions[position], position, eps, " > ", result[i], i)
+              //}
+              
+            } else {
+              if (!transitions[position]) {
+                console.log("BAD : No transition > ", position, transitions[position])
+              } else {
+                console.log("OK : No eps transition > ", position, transitions[position])
+              }
+            }
+          }
+          line.push(result);
+          console.log("OK : Result = ", result);
+          //si avem si tranzitia la eps
+        }
+        console.log("OK : Line = ", line)
+        for (let i = 1; i < line.length; i++) {
+
+          //needs further validation 
+          /**
+           * Take each individual state and check if it exists in the arr
+           */
+          let found = false;
+          for (let l = 0; l < nfa_states.length; l++) {
+            let counter = 0;
+            for (let k = 0; k < line[i].length; k++) {
+              if(nfa_states[l].indexOf(line[i][k]) !== -1){
+                counter++;
+              }
+            }
+            if(counter === line[i].length){
+              console.log("Found !")
+              found = true;
+            }
+          }
+
+
+          if ( !found ) {
+            nfa_states.push(line[i])
+            console.log("OK : Adding a new state > ", line[i].sort(), i)
+          }
+
+
+
+        }
+        console.log("OK : Here are the states > ", nfa_states)
+        console.log(nfa_states);
+
+        output.push(line);
+        console.log("OK : Here are the states > ", nfa_states)
+      }
+      console.log("Output >",output);
     }
 
   };
@@ -173,8 +266,8 @@ export default class Input_table extends React.Component {
                         onChange={this.updateEditable}
                       />
                     ) : (
-                      val
-                    )}
+                        val
+                      )}
                   </Table.Cell>
 
                   {/**################################################################################################# */}
@@ -218,11 +311,11 @@ export default class Input_table extends React.Component {
           &lt; Convert &gt;{" "}
         </Button>
         {
-        this.state.err ?
-        <Message negative>
-            <Message.Header>We are sorry we cannot convert this automate</Message.Header>
-            <p>{this.state.err}</p>
-        </Message> : null 
+          this.state.err ?
+            <Message negative>
+              <Message.Header>We are sorry we cannot convert this automate</Message.Header>
+              <p>{this.state.err}</p>
+            </Message> : null
         }
       </div>
     );
