@@ -1,0 +1,27 @@
+.InputValue{
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+}
+.InputCell{
+    margin: 0 !important;
+    padding: 2px !important;
+}
+.InputTable{
+    width: 90vw !important;
+}
+.state{
+    width: 100% !important;
+}
+.RowButton{
+    display:flex;
+    flex-flow: row;
+    justify-content: center;
+    align-items: center;
+}
+.ColumnButton{
+    display:flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+}

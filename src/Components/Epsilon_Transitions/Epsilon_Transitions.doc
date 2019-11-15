@@ -1,0 +1,71 @@
+                                     Automate converter from epsilon transitions
+
+#############################################################################################################################
+It's purpose is to convert an automate with epsilon transitions to a normal determinist automate.
+#############################################################################################################################
+
+** Variables : 
+The automate is determined under the form of a matrix, that represents the transitions between each state
+Each variable should be defined by the user, by completing a table.
+After that the app is supposed to get each transitions and calculate it's epsilon transitions and its new states.
+
+****************************************************************************************************************************
+Ex1 : An automate with 2 characters in the alphabet and 4 states
+-------------User input matrix----------------------------------------------------------------------------------------------
+{
+    states : [s0,q1,q2,f3],          | a | b
+    alphabet : [a,b],              s0| 0 | 2   (a*b2)
+    transitions : [                q1| 1 | 3   (a*b3)
+        [0,2],                     q2| 1 | 3   (a1b3)
+        [1,3],                     f3| 3 | 3   (a*b*)
+        [1,3],
+        [3,3]
+    ]
+}
+
+We notice that there is a problem with this automate for the current problem, and the fact that the automate is allready a
+finite determinist automate and that we don't have any epsilon transitions in it.
+
+...........................................................................................................................
+If such an automate is given as an user input, the interface will try helpig the user by redierecting him in another
+category of the algorithm, when avaiable, with the current input.
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+As there is no possible conversion for the current user input let's try a new one.
+
+****************************************************************************************************************************
+Ex2: An automate with 2 characters in the alphabet and 4 states
+-------------User input matrix----------------------------------------------------------------------------------------------
+{
+    states : [s0,q1,q2,f3],            | a | b | e
+    alphabet : [a,b,e],              s0| 0 | 2 | 2
+    transitions : [                  q1| 1 | 3 | x
+        [0,2,2],                     q2| 1 | 2 | 2
+        [1,3,x],                     f3| 3 | 3 | x
+        [1,3,2],
+        [3,3,x]         
+    ]                              
+}
+
+The conversion of this autoamte is possible, so let's define the steps for it.
+The way we can convert an automate with eps transitions to a normal one is by taking each state, and calculate its epsilon
+enclosure, by starting from the start node
+
+-----------Output Matrix---------------------------------------------------------------------------------------------------
+
+           | a            | b 
+s0         | (s0, q2)     | (q2)
+q2         | (q1)         | (q2)
+q1         | (q1,f3)      | (f3)
+f3         | (f3)         | (f3)
+(s0,q2)    | (s0, q1, q2) | (q2)
+(s0,q1,q2) | (s0, q1, q2) | (q2, f3)
+(q1,f3)    | (q1, f3)     | (f3)
+(q2,f3)    | (q1, f3)     | (q2,f3)
+
+Which is the equivalent automate for the one presented above.
+The closure of an epsilon transition represents checking the transition of each state in each of the avaiables variables
+and after that checking the resulted states, for epsilon transitions.
+The starting states are is the same as before, and the final state, are all the states that contain th final state in they'r
+definition.
+In this case the starting state is [s0] and the final one's are [f3, (q1,f3), (q2,f3)]
