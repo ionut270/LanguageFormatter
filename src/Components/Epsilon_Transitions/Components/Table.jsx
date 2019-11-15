@@ -148,7 +148,7 @@ export default class Input_table extends React.Component {
         for (let j = 0; j < alphabet.length - 1; j++) { // 0 - a
           var result = []
           var line = [[nfa_states[m]]]
-          console.log("Inainte de crash!",nfa_states[m],m,nfa_states)
+          console.log("Inainte de crash!", nfa_states[m], m, nfa_states)
           for (let i = 0; i < nfa_states[m].length; i++) { // 0 - s1 pot fi mai multe
             var position = states.indexOf(nfa_states[m][i]); // 0
             result.push(transitions[position][j]); // transitions[0][0] = f2
@@ -164,11 +164,11 @@ export default class Input_table extends React.Component {
 
             if (transitions[position] && transitions[position][eps]) { // daca se duce undeva cu eps
 
-              // if(result.indexOf(transitions[position][eps]) > 0 ){
+              if (result.indexOf(transitions[position][eps]) === -1) {
                 result.push(transitions[position][eps])
                 console.log("OK : Epsilon transition > ", transitions[position][eps], transitions[position], position, eps, " > ", result[i], i)
-              //}
-              
+              }
+
             } else {
               if (!transitions[position]) {
                 console.log("BAD : No transition > ", position, transitions[position])
@@ -192,32 +192,34 @@ export default class Input_table extends React.Component {
           for (let l = 0; l < nfa_states.length; l++) {
             let counter = 0;
             for (let k = 0; k < line[i].length; k++) {
-              if(nfa_states[l].indexOf(line[i][k]) !== -1){
+              if (nfa_states[l].indexOf(line[i][k]) !== -1) {
                 counter++;
               }
             }
-            if(counter === line[i].length){
+            if (counter === line[i].length) {
               console.log("Found !")
               found = true;
             }
           }
 
 
-          if ( !found ) {
+          if (!found) {
             nfa_states.push(line[i])
             console.log("OK : Adding a new state > ", line[i].sort(), i)
           }
 
-
-
         }
-        console.log("OK : Here are the states > ", nfa_states)
-        console.log(nfa_states);
-
         output.push(line);
-        console.log("OK : Here are the states > ", nfa_states)
+        console.log("OK : Here are the states > ", nfa_states, line, output)
       }
-      console.log("Output >",output);
+      console.log("Output >", nfa_states, output);
+
+      //Huray ! 
+
+      this.setState({
+        output: output,
+        output_States: nfa_states
+      })
     }
 
   };
@@ -317,6 +319,30 @@ export default class Input_table extends React.Component {
               <p>{this.state.err}</p>
             </Message> : null
         }
+
+        {this.state.output ?
+          <Table>
+            <Table.Header>
+              <Table.HeaderCell />
+
+              {this.state.alphabet.splice(0, this.state.alphabet.length - 1).map((el, index) =>
+                <Table.HeaderCell key={index}>
+                  {el}
+                </Table.HeaderCell>
+              )}
+            </Table.Header>
+            <Table.Body>
+              {this.state.output_States.map((val, index) =>
+                <Table.Row key={index}>
+                  <Table.Cell>{val}</Table.Cell>
+                  {this.state.output[index].map((res, index) =>
+                    <Table.Cell>{res}</Table.Cell>
+                  )}
+                </Table.Row>
+              )}
+            </Table.Body>
+          </Table>
+          : null}
       </div>
     );
   }
