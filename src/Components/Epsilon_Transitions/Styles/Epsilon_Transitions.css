@@ -25,3 +25,35 @@
     justify-content: center;
     align-items: center;
 }
+.ui.input>input {
+    max-width: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+table.ui.celled.definition.compact.table.InputTable {
+    width: 50vw !important;
+}
+table.ui.celled.definition.compact.table.InputTable {
+    text-align: center;
+}
+.ui.horizontal.divider {
+    margin-top:2em;
+    width: 90vw;
+}
+
+.ButtonsAndAll {
+    display: flex;
+    align-items: center;
+    flex-flow: column;
+}
+
+
+.Graph {
+    display: flex;
+    flex-basis: 50% !important;
+    align-items: center;
+    justify-content: center;
+}
