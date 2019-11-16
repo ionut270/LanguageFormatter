@@ -4,26 +4,10 @@ import Graph from "react-graph-vis";
 
 /****************    Mockup */
 
-const graph = {
-  nodes: [
-    { id: 1, label: "s1", title: "node 1 tootip text" },
-    { id: 2, label: "q2", title: "node 2 tootip text" },
-    { id: 3, label: "q3", title: "node 3 tootip text" },
-    { id: 4, label: "q4", title: "node 4 tootip text" },
-    { id: 5, label: "f5", title: "node 5 tootip text" }
-  ],
-  edges: [
-    { from: 1, to: 2, label: "a" },
-    { from: 1, to: 2, label: "b" },
-    { from: 1, to: 3, label: "a" },
-    { from: 2, to: 4, label: "a" },
-    { from: 2, to: 5, label: "a" }
-  ]
-};
 
 const options = {
   layout: {
-    hierarchical: true
+    hierarchical: false
   },
   edges: {
     color: "#000000"
@@ -43,17 +27,50 @@ export default class Input_table extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      states: ["s0", "q1", "f1"],
+      states: ["s0", "q1", "f2"],
       alphabet: ["a", "b", "ε"],
       transitions: [
         ["s0", "q1", ""],
-        ["f1", "q1", "s0"],
-        ["f1", "s0", "f1"]
+        ["f2", "q1", "s0"],
+        ["f2", "s0", "f2"]
       ],
       editable: "",
       err: null,
-      visible: false
+      visible: false,
+      graph : {
+        nodes:[],
+        edges:[]
+      }
     };
+  }
+
+  convertForDisplay = e => {
+    var nodes = []
+    for(let i=0; i<this.state.states.length;i++){
+      nodes.push({
+        id:i,
+        label:this.state.states[i]
+      })
+    }
+
+    var edges = []
+    for(let i =0; i<this.state.transitions.length; i++){
+      for(let j=0 ;j < this.state.transitions[i].length; j++){
+        edges.push({
+          from  : eval(this.state.states[i].split(/[a-z]/)[1]),
+          to    : eval(this.state.transitions[i][j].split(/[a-z]/)[1]),
+          label : this.state.alphabet[j]
+        })
+      }
+    }
+    console.log(edges);
+    var graph = {
+      nodes:nodes,
+      edges:edges
+    }
+    this.setState({
+      graph:graph
+    })
   }
 
   changeEditable = id => e => {
@@ -313,6 +330,7 @@ export default class Input_table extends React.Component {
   }
 
   makeVisible = e => {
+    this.convertForDisplay();
     this.setState({
       visible: true
     })
@@ -441,7 +459,7 @@ export default class Input_table extends React.Component {
           >
             <Graph
               className="GraphVisual"
-              graph={graph}
+              graph={this.state.graph}
               options={options}
               events={events}
               getNetwork={network => {
