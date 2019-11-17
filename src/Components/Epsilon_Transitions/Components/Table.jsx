@@ -1,27 +1,6 @@
 import React from "react";
-import { Table, Input, Button, Message, Divider, Header, Segment, Sidebar } from "semantic-ui-react";
-import Graph from "react-graph-vis";
+import { Table, Input, Button, Message } from "semantic-ui-react";
 
-/****************    Mockup */
-
-
-const options = {
-  layout: {
-    hierarchical: false
-  },
-  edges: {
-    color: "#000000"
-  },
-  height: "500px"
-};
-
-const events = {
-  select: function (event) {
-    var { nodes, edges } = event;
-  }
-};
-
-/****************    Mockup */
 
 export default class Input_table extends React.Component {
   constructor(props) {
@@ -34,49 +13,44 @@ export default class Input_table extends React.Component {
         ["f2", "q1", "s0"],
         ["f2", "s0", "f2"]
       ],
-      editable: "",
       err: null,
       visible: false,
-      graph : {
-        nodes:[],
-        edges:[]
-      }
+      // graph: {
+      //   nodes: [],
+      //   edges: []
+      // }
     };
   }
 
-  convertForDisplay = e => {
-    var nodes = []
-    for(let i=0; i<this.state.states.length;i++){
-      nodes.push({
-        id:i,
-        label:this.state.states[i]
-      })
-    }
+  // convertForDisplay = e => {
+  //   var nodes = []
+  //   for (let i = 0; i < this.state.states.length; i++) {
+  //     nodes.push({
+  //       id: i,
+  //       label: this.state.states[i]
+  //     })
+  //   }
 
-    var edges = []
-    for(let i =0; i<this.state.transitions.length; i++){
-      for(let j=0 ;j < this.state.transitions[i].length; j++){
-        edges.push({
-          from  : eval(this.state.states[i].split(/[a-z]/)[1]),
-          to    : eval(this.state.transitions[i][j].split(/[a-z]/)[1]),
-          label : this.state.alphabet[j]
-        })
-      }
-    }
-    console.log(edges);
-    var graph = {
-      nodes:nodes,
-      edges:edges
-    }
-    this.setState({
-      graph:graph
-    })
-  }
+  //   var edges = []
+  //   for (let i = 0; i < this.state.transitions.length; i++) {
+  //     for (let j = 0; j < this.state.transitions[i].length; j++) {
+  //       edges.push({
+  //         from: eval(this.state.states[i].split(/[a-z]/)[1]),
+  //         to: eval(this.state.transitions[i][j].split(/[a-z]/)[1]),
+  //         label: this.state.alphabet[j]
+  //       })
+  //     }
+  //   }
+  //   console.log(edges);
+  //   var graph = {
+  //     nodes: nodes,
+  //     edges: edges
+  //   }
+  //   this.setState({
+  //     graph: graph
+  //   })
+  // }
 
-  changeEditable = id => e => {
-    this.setState({ editable: id });
-    console.log("Change Editable !");
-  }
 
   updateEditable = (e, { value, id }) => {
     console.log("Update Editable !");
@@ -85,6 +59,10 @@ export default class Input_table extends React.Component {
     switch (id.split(/_/)[1]) {
       case "editable":
         var index = eval(id.split(/_/)[0]);
+
+        if (value.split(/^[a-z]/)[1] !== index) {
+          value = value.split(/\d/)[0] + index;
+        }
 
         state.states[index] = value;
         this.setState(state);
@@ -112,12 +90,19 @@ export default class Input_table extends React.Component {
     var alphabet = this.state.alphabet;
     alphabet.push("");
 
-    var spliced = alphabet.splice(0,alphabet.length-2)
+    var spliced = alphabet.splice(0, alphabet.length - 2)
     spliced.push("");
     spliced.push("ε");
 
+    var transitions = this.state.transitions;
+
+    for(let i=0; i< transitions.length; i++){
+      transitions[i].push("");
+    }
+
     this.setState({
       alphabet: spliced,
+      transitions:transitions
     });
   };
 
@@ -127,7 +112,7 @@ export default class Input_table extends React.Component {
     var states = this.state.states;
     var alphabet = this.state.alphabet;
 
-    states.push("");
+    states.push("" + states.length);
     transitions.push(new Array(alphabet.length));
 
     this.setState({
@@ -135,7 +120,6 @@ export default class Input_table extends React.Component {
       transitions: transitions
     });
   };
-
   convertAutomate = e => {
 
     console.log("Convert Autoamte !");
@@ -183,16 +167,18 @@ export default class Input_table extends React.Component {
         } else {
           valid = false;
           this.setState({
-            err: "Please fill the whole table with values !"
+            err: "1 Please fill the whole table with values !"
           })
         }
       }
     } else {
       valid = false;
       this.setState({
-        err: "Please fill the whole table with values !"
+        err: "2 Please fill the whole table with values !"
       })
     }
+
+    console.log(this.state.states,this.state.alphabet,this.state.transitions)
 
     if (valid === true) {
 
@@ -303,9 +289,6 @@ export default class Input_table extends React.Component {
         }
         //console.log("OK : Here are the states > ", cns)
       }
-      //console.log("Output >");
-
-      //Huray ! 
 
       for (let i = 0; i < output.length; i++) {
         var ln = "<"
@@ -314,21 +297,24 @@ export default class Input_table extends React.Component {
         }
         //console.log("[" + ln + "]");
       }
-
-      this.setState({
+      var obj = {
+        alphabet: alphabet,
         output: output,
         output_States: nfa_states
-      })
+      }
+      this.props.passTable(obj)
+      // this.setState({
+      //   output: output,
+      //   output_States: nfa_states
+      // })
     }
 
   };
-
   setVisible(val) {
     this.setState({
       visible: val
     })
   }
-
   makeVisible = e => {
     this.convertForDisplay();
     this.setState({
@@ -340,163 +326,136 @@ export default class Input_table extends React.Component {
       visible: false
     })
   }
+  removeRow = e => {
+    var states = this.state.states;
+    var transitions = this.state.transitions;
 
+    states.pop();
+    transitions.pop();
+
+    this.setState({
+      states: states,
+      transitions: transitions
+    })
+  }
+  removeCollumn = e => {
+    var alphabet = this.state.alphabet;
+    var transitions = this.state.transitions;
+
+    //not as simple as row !
+
+    //we have to protect the epsilon simbol
+    alphabet.pop();
+    alphabet.pop();
+    alphabet.push("ε");
+
+
+    for (let i = 0; i < transitions.length; i++) {
+      // var last = transitions[i][transitions[i].length - 1];
+
+      // transitions[i].pop();
+      transitions[i].pop();
+      // transitions[i].push(last)
+    }
+
+    this.setState({
+      alphabet: alphabet,
+      transitions: transitions
+    })
+    console.log(alphabet, transitions)
+  }
   render() {
-    var alpha = this.state.alphabet
-    var visible = this.state.visible
     return (
       <div className="ColumnButton">
-        {this.state.visible ? <Button primary style={{ marginBottom: "2em" }} onClick={this.makeInvisible}>
-          Hide Graph
-        </Button> : <Button primary style={{ marginBottom: "2em" }} onClick={this.makeVisible}>
-            View Graph
-        </Button>}
-        <Sidebar.Pushable className="Graph">
-          <Sidebar.Pusher className="ButtonsAndAll" dimmed={visible}>
-            <div className="RowButton">
-              <Table celled definition className="InputTable" compact>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell style={{ minWidth: "150px" }} />
+        <Button color="red" circular icon="minus" onClick={this.removeRow} />
+        <div className="RowButton">
+          <Button color="red" circular icon="minus" style={{ marginRight: "1em" }} onClick={this.removeCollumn} />
+          <Table celled className="InputTable">
+            <Table.Header>
+              <Table.Row>
+                <Table.HeaderCell className="HeaderClean" />
 
-                    {this.state.alphabet.map((val, index) => (
-                      <Table.HeaderCell
-                        key={index}
-                        className="InputCell"
-                        textAlign="center"
-                      >
-                        <Input
-                          className="InputValue"
-                          id={index + "_alphabet"}
-                          value={this.state.alphabet[index]}
-                          onChange={this.updateEditable}
-                        />
-                      </Table.HeaderCell>
-                    ))}
-                  </Table.Row>
-                </Table.Header>
-
-                <Table.Body>
-                  {this.state.states.map((val, index) => (
-                    <Table.Row key={index}>
-                      <Table.Cell
-                        style={{ minWidth: "150px" }}
-                        id={index}
-                        className="InputCell"
-                        textAlign="center"
-                        onClick={this.changeEditable(index + "_state")}
-                      >
-                        {this.state.editable === index + "_state" ? (
-                          <Input
-                            id={index + "_editable"}
-                            value={this.state.states[index]}
-                            className="InputValue state"
-                            onChange={this.updateEditable}
-                          />
-                        ) : (
-                            val
-                          )}
-                      </Table.Cell>
-
-                      {/**################################################################################################# */}
-
-                      {this.state.alphabet.map((val, index2) => (
-                        <Table.HeaderCell
-                          key={index2}
-                          className="InputCell"
-                          textAlign="center"
-                        >
-                          <Input
-                            className="InputValue"
-                            id={index + ":" + index2 + "_InputValue"}
-                            value={this.state.transitions[index][index2]}
-                            onChange={this.updateEditable}
-                          />
-                        </Table.HeaderCell>
-                      ))}
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
-
-              <Button
-                style={{ marginLeft: "1em" }}
-                primary
-                circular
-                icon="plus"
-                onClick={this.addCollumn}
-              />
-            </div>
-
-            <Button primary circular icon="plus" onClick={this.addRow} />
-
-            <Button
-              primary
-              style={{ marginTop: "1em" }}
-              onClick={this.convertAutomate}
-            >
-              {" "}
-              &lt; Convert &gt;{" "}
-            </Button>
-            {
-              this.state.err ?
-                <Message negative>
-                  <Message.Header>We are sorry we cannot convert this automate</Message.Header>
-                  <p>{this.state.err}</p>
-                </Message> : null
-            }
-          </Sidebar.Pusher>
-
-          <Sidebar
-            as={Segment}
-            animation='push'
-            icon='labeled'
-            style={{ backgroundColor: "white", width: "80%" }}
-            // onHide={() => this.setVisible(false)}
-            vertical
-            visible={visible}
-            width='huge'
-          >
-            <Graph
-              className="GraphVisual"
-              graph={this.state.graph}
-              options={options}
-              events={events}
-              getNetwork={network => {
-                //  if you want access to vis.js network api you can set the state in a parent component using this property
-              }}
-            />
-          </Sidebar>
-        </Sidebar.Pushable>
-        <Divider horizontal>
-          <Header as='h4'>
-            Result will appear below
-      </Header>
-        </Divider>
-        {this.state.output ?
-          <Table celled definition className="InputTable" compact>
-            <Table.Header className="HeaderRes">
-              <Table.HeaderCell className="HeaderCellRes" />
-
-              {alpha.map((el, index) => el === "ε" ? null :
-                <Table.HeaderCell className="HeaderCellRes" key={index}>
-                  {el}
-                </Table.HeaderCell>
-              )}
+                {this.state.alphabet.map((val, index) => (
+                  <Table.HeaderCell
+                    key={index}
+                    className="InputCell"
+                    textAlign="center"
+                  >
+                    {val === "ε" ? val : <Input
+                      className="InputValue clean"
+                      id={index + "_alphabet"}
+                      value={this.state.alphabet[index]}
+                      onChange={this.updateEditable}
+                    />}
+                  </Table.HeaderCell>
+                ))}
+              </Table.Row>
             </Table.Header>
-            <Table.Body className="BodyRes">
-              {this.state.output_States.map((val, index) =>
-                <Table.Row className="BodyRowRes" key={index}>
-                  <Table.Cell className="BodyCellRes">{val}</Table.Cell>
-                  {this.state.output[index].map((res, index) =>
-                    <Table.Cell className="BodyCellRes" key={index}>{res}</Table.Cell>
-                  )}
+
+            <Table.Body>
+              {this.state.states.map((val, index) => (
+                <Table.Row error={val.split(/\d/)[0] === "f"} positive={val.split(/\d/)[0] === "s"} key={index}>
+                  <Table.Cell
+                    style={{ minWidth: "150px" }}
+                    id={index}
+                    className="InputCell"
+                    textAlign="center"
+                  >
+                    <Input
+                      id={index + "_editable"}
+                      value={this.state.states[index]}
+                      className="InputValue state clean"
+                      onChange={this.updateEditable}
+                    />
+                  </Table.Cell>
+
+                  {/**################################################################################################# */}
+
+                  {this.state.alphabet.map((val, index2) => (
+                    <Table.HeaderCell
+                      key={index2}
+                      className="InputCell"
+                      textAlign="center"
+                    >
+                      <Input
+                        className="InputValue clean"
+                        id={index + ":" + index2 + "_InputValue"}
+                        value={this.state.transitions[index][index2]}
+                        onChange={this.updateEditable}
+                      />
+                    </Table.HeaderCell>
+                  ))}
                 </Table.Row>
-              )}
+              ))}
             </Table.Body>
           </Table>
-          : null}
 
+          <Button
+            style={{ marginLeft: "1em" }}
+            primary
+            circular
+            icon="plus"
+            onClick={this.addCollumn}
+          />
+        </div>
+
+        <Button primary circular icon="plus" onClick={this.addRow} />
+
+        <Button
+          primary
+          style={{ marginTop: "1em" }}
+          onClick={this.convertAutomate}
+        >
+          {" "}
+          &lt; Convert &gt;{" "}
+        </Button>
+        {
+          this.state.err ?
+            <Message negative>
+              <Message.Header>We are sorry we cannot convert this automate</Message.Header>
+              <p>{this.state.err}</p>
+            </Message> : null
+        }
       </div>
     );
   }

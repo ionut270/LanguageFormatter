@@ -8,7 +8,7 @@
     padding: 2px !important;
 }
 .InputTable{
-    width: 90vw !important;
+    width: 40vw !important;
 }
 .state{
     width: 100% !important;
@@ -56,4 +56,16 @@ table.ui.celled.definition.compact.table.InputTable {
     flex-basis: 50% !important;
     align-items: center;
     justify-content: center;
+}
+.clean >input, .HeaderClean {
+    /* border: none !important;*/
+    background: none !important; 
+    width: 2em !important;
+}
+.Tables{
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center ;
+    flex-basis: 50%;
 }

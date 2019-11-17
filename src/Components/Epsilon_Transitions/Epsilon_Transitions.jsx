@@ -1,46 +1,12 @@
 import React from "react";
 import InputTable from "./Components/Table";
-import Graph from "react-graph-vis";
+import Result from "./Components/Result";
+import Digraph from "./Components/digraph"
+
+import { Divider, Header } from "semantic-ui-react";
 
 import "./Styles/Epsilon_Transitions.css";
-// import "./network.css";
 
-/****************    Mockup */
-
-const graph = {
-  nodes: [
-    { id: 1, label: "s1", title: "node 1 tootip text" },
-    { id: 2, label: "q2", title: "node 2 tootip text" },
-    { id: 3, label: "q3", title: "node 3 tootip text" },
-    { id: 4, label: "q4", title: "node 4 tootip text" },
-    { id: 5, label: "f5", title: "node 5 tootip text" }
-  ],
-  edges: [
-    { from: 1, to: 2, label:"a" },
-    { from: 1, to: 2, label:"b" },
-    { from: 1, to: 3, label:"a" },
-    { from: 2, to: 4, label:"a" },
-    { from: 2, to: 5, label:"a" }
-  ]
-};
-
-const options = {
-  layout: {
-    hierarchical: true
-  },
-  edges: {
-    color: "#000000"
-  },
-  height: "500px"
-};
-
-const events = {
-  select: function(event) {
-    var { nodes, edges } = event;
-  }
-};
-
-/****************    Mockup */
 
 export default class Epsilon_Transitions extends React.Component {
   /** Documentation in ./Epsilon_Transitions.doc */
@@ -49,22 +15,38 @@ export default class Epsilon_Transitions extends React.Component {
     super(props);
     this.state = {
       input: [],
-      output: []
+      output: [],
+
+      output: null
     };
   }
 
+  passTable = e => obj => {
+
+    this.setState({
+      output: obj
+    })
+
+    this.child.prepareForRender();
+  }
+
+
   render() {
     return (
-      <div>
-        <InputTable />
-        {/* <Graph
-          graph={graph}
-          options={options}
-          events={events}
-          getNetwork={network => {
-            //  if you want access to vis.js network api you can set the state in a parent component using this property
-          }}
-        /> */}
+      <div className="Body">
+        <div className="Tables">
+          <Digraph obj={this.state.output}  ref={instance => { this.child = instance; }} />
+
+          <InputTable passTable={this.passTable()} />
+
+          <Divider horizontal>
+            <Header as='h4'>
+              Result will appear below
+            </Header>
+          </Divider>
+
+          {this.state.inputTable !== null ? <Result out={this.state.output} /> : null}
+        </div>
       </div>
     );
   }
