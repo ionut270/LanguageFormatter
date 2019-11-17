@@ -69,3 +69,36 @@ table.ui.celled.definition.compact.table.InputTable {
     align-items: center ;
     flex-basis: 50%;
 }
+
+.Sidebaaar{
+    width: 90vw !important;
+    min-height: 50% !important;
+}
+
+div#root {
+    height: calc(100vh - 3.9em);
+}
+.Tables {
+    height: 98%;
+}
+.Body {
+    height: 100%;
+}
+.ui.segment.pushable.Sidebaaar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ui.vertical.segment.ui.overlay.left.thick.visible.sidebar, .ui.vertical.segment.ui.overlay.left.thick.sidebar {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 50%;
+    background-color: white;
+}
+button.ui.circular.icon.primary.button.SidebarHandler {
+    z-index: 1000;
+    position: absolute;
+    bottom: 1em;
+    left: 1em;
+}

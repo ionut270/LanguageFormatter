@@ -23,7 +23,7 @@ export default class Result extends React.Component {
                 </Table.Header>
                 <Table.Body className="BodyRes">
                     {this.props.out.output_States.map((val, index) =>
-                        <Table.Row className="BodyRowRes" key={index}>
+                        <Table.Row error={JSON.stringify(val).match(/f/)} positive={val[0] === "s0"} className="BodyRowRes" key={index}>
                             <Table.Cell className="BodyCellRes">{val}</Table.Cell>
                             {this.props.out.output[index].map((res, index) =>
                                 <Table.Cell className="BodyCellRes" key={index}>{res}</Table.Cell>

@@ -15,42 +15,8 @@ export default class Input_table extends React.Component {
       ],
       err: null,
       visible: false,
-      // graph: {
-      //   nodes: [],
-      //   edges: []
-      // }
     };
   }
-
-  // convertForDisplay = e => {
-  //   var nodes = []
-  //   for (let i = 0; i < this.state.states.length; i++) {
-  //     nodes.push({
-  //       id: i,
-  //       label: this.state.states[i]
-  //     })
-  //   }
-
-  //   var edges = []
-  //   for (let i = 0; i < this.state.transitions.length; i++) {
-  //     for (let j = 0; j < this.state.transitions[i].length; j++) {
-  //       edges.push({
-  //         from: eval(this.state.states[i].split(/[a-z]/)[1]),
-  //         to: eval(this.state.transitions[i][j].split(/[a-z]/)[1]),
-  //         label: this.state.alphabet[j]
-  //       })
-  //     }
-  //   }
-  //   console.log(edges);
-  //   var graph = {
-  //     nodes: nodes,
-  //     edges: edges
-  //   }
-  //   this.setState({
-  //     graph: graph
-  //   })
-  // }
-
 
   updateEditable = (e, { value, id }) => {
     console.log("Update Editable !");
@@ -310,22 +276,6 @@ export default class Input_table extends React.Component {
     }
 
   };
-  setVisible(val) {
-    this.setState({
-      visible: val
-    })
-  }
-  makeVisible = e => {
-    this.convertForDisplay();
-    this.setState({
-      visible: true
-    })
-  }
-  makeInvisible = e => {
-    this.setState({
-      visible: false
-    })
-  }
   removeRow = e => {
     var states = this.state.states;
     var transitions = this.state.transitions;

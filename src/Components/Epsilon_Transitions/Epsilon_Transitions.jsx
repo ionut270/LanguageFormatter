@@ -3,7 +3,7 @@ import InputTable from "./Components/Table";
 import Result from "./Components/Result";
 import Digraph from "./Components/digraph"
 
-import { Divider, Header } from "semantic-ui-react";
+import { Divider, Header, Sidebar, Segment, Button } from "semantic-ui-react";
 
 import "./Styles/Epsilon_Transitions.css";
 
@@ -17,7 +17,8 @@ export default class Epsilon_Transitions extends React.Component {
       input: [],
       output: [],
 
-      output: null
+      output: null,
+      visible: false
     };
   }
 
@@ -27,15 +28,21 @@ export default class Epsilon_Transitions extends React.Component {
       output: obj
     })
 
-    this.child.prepareForRender();
   }
 
+  handleResultDisplay = e =>{
+    this.setState({
+      visible: !this.state.visible
+    })
+
+    this.child.prepareForRender();
+
+  }
 
   render() {
     return (
       <div className="Body">
         <div className="Tables">
-          <Digraph obj={this.state.output}  ref={instance => { this.child = instance; }} />
 
           <InputTable passTable={this.passTable()} />
 
@@ -45,7 +52,30 @@ export default class Epsilon_Transitions extends React.Component {
             </Header>
           </Divider>
 
-          {this.state.inputTable !== null ? <Result out={this.state.output} /> : null}
+          {this.state.inputTable !== null ?
+            <Sidebar.Pushable as={Segment} className="Sidebaaar">
+
+              <Button className="SidebarHandler" icon={this.state.visible ? "arrow left" : "arrow right"} primary circular onClick={this.handleResultDisplay}/>
+              
+              <Sidebar
+                as={Segment}
+                animation='overlay'
+                icon='labeled'
+                vertical
+                visible={this.state.visible}
+                width='thick'
+              >
+                <Digraph obj={this.state.output} ref={instance => { this.child = instance; }} />
+              </Sidebar>
+
+              <Sidebar.Pusher>
+                <Segment basic>
+                  <Result out={this.state.output} />
+                </Segment>
+              </Sidebar.Pusher>
+
+            </Sidebar.Pushable>
+            : null}
         </div>
       </div>
     );
