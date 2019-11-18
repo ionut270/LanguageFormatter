@@ -1,6 +1,5 @@
 import React from "react";
 import { Table, Input, Button, Message } from "semantic-ui-react";
-import { STATUS_CODES } from "http";
 
 export default class Input_table extends React.Component {
   constructor(props) {
@@ -9,16 +8,16 @@ export default class Input_table extends React.Component {
       states: ["s0", "q1", "f2"],
       alphabet: ["a", "b", "ε"],
       transitions: [
-        [[],     [0], []],
+        [[], [0], [1]],
         [[1, 2], [2], []],
-        [[],     [ ],  []]
+        [[], [], []]
       ],
       err: null,
       visible: false
     };
   }
 
-  convertToNaturalLanguage = e => {};
+  convertToNaturalLanguage = e => { };
 
   updateEditable = (e, { value, id }) => {
     console.log("Update Editable !");
@@ -37,10 +36,37 @@ export default class Input_table extends React.Component {
         break;
 
       case "InputValue":
+
+        console.log("Input value !");
+
         let i = id.split(/:/)[0];
         let j = id.split(/:/)[1].split(/_/)[0];
 
-        state.transitions[i][j] = eval(value.split(/[a-z]/)[1]);
+        //First check  if we have charcater id's
+
+        // if(value.match(/[a-z]/)){
+        //   state.transitions[i][j] = eval(value.split(/[a-z]/)[1]);
+        // } else {
+
+        //we can have multiple el's separated with ,
+        if (value.match(/,/)) {
+          value = value.split(/,/) // we have an array here
+        } else {
+          value = [value] // we have a single element that we put in an arr
+        }
+
+        for (let i = 0; i < value.length; i++) {
+          if (value[i].match(/[a-z]/)) {
+            value[i] = eval(value[i].split(/[a-z]/)[1])
+          } else {
+            value[i] = eval(value[i])
+          }
+        }
+
+        state.transitions[i][j] = value;
+
+        console.log("What happens : ", state.transitions, value)
+
         this.setState(state);
         break;
 
@@ -49,6 +75,8 @@ export default class Input_table extends React.Component {
 
         state.alphabet[index] = value;
         this.setState(state);
+        break;
+      default:
         break;
     }
   };
@@ -65,7 +93,7 @@ export default class Input_table extends React.Component {
     var transitions = this.state.transitions;
 
     for (let i = 0; i < transitions.length; i++) {
-      transitions[i].push("");
+      transitions[i].push([]);
     }
 
     this.setState({
@@ -80,8 +108,13 @@ export default class Input_table extends React.Component {
     var states = this.state.states;
     var alphabet = this.state.alphabet;
 
-    states.push("" + states.length);
-    transitions.push(new Array(alphabet.length));
+    states.push("q" + states.length);
+
+    transitions[states.length - 1] = []
+    for (let i = 0; i < alphabet.length; i++) {
+      transitions[states.length - 1].push([])
+    }
+
 
     this.setState({
       states: states,
@@ -96,108 +129,132 @@ export default class Input_table extends React.Component {
     var transitions = this.state.transitions;
     var eps = alphabet.indexOf("ε");
 
-    var dfa = [];
-
-    function CI(Q) {
-      // inchiderea la epsilon
-      //Q fiind o multime de stari pentru care verificam unde merge fiecare cu epsilon
-
-      //caz curent q0 = 0
-      //q0[ε] = [ q0 , 1 ] q0 != 1
-      var ci = [];
-
-      for (let i = 0; i < Q.length; i++) {
-        var q = Q[i];
-
-        if (typeof Q[i] == "string") {
-          var q = eval(Q[i].split(/[a-z]/)[1]);
-        }
-        if (ci.indexOf(q) === -1) {
-          ci.push(q);
-
-          if (ci.indexOf(transitions[q][eps]) === -1) {
-            //unde se duce q caz 0 cu epsilon caz 1
-            for (let j = 0; j < transitions[q][eps].length; j++) {
-              ci.push(transitions[q][eps][j]);
-            }
-          }
-        }
-      }
-      return ci;
-    }
-
-    function Final(q) {
-      // doar un simplu arary cu care verificam daca e sare finala sau nu
-      for (let i = 0; i < q.length; i++) {
-        if (states[i].match(/f/)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    function delta(q, a) {
-      a = alphabet.indexOf(a);
-      var delta = [];
-      for (let i = 0; i < q.length; i++) {
-        for (let j = 0; j < transitions[q[i]][a].length; j++) {
-          if(transitions[q[i]][a][j] !== undefined)
-          delta.push(transitions[q[i]][a][j]);
-        }
-      }
-      return delta;
-    }
-
-    var q0 = CI([states[0]]); // 1 --- stare initiala
-
-    var Q = [q0]; // 1 --- multime stari ...
-    var marcat = []; // 2 --- pusham ce marcam ...
-    var F = []; // 2 --- multime stari finale ...
-
-    // 3 ---
-    if (Final(q0)) {
-      F.push(q0);
-    }
-
-    // 4 ---
-    //Q.map(S => {
-    for(let x=0; x<Q.length; x++){  
-      var S = Q[x];
-
-      if (marcat.indexOf(S) === -1) {
-        // 5 ---
-        alphabet.forEach(a => {
-          if(a !== "ε"){
-          //Avem un S'
-          var S1 = CI(delta(S, a));
-
-          if(dfa[Q.indexOf(S)] === undefined){
-            dfa[Q.indexOf(S)]  = []
-          }
-
-          dfa[Q.indexOf(S)][alphabet.indexOf(a)] = S1; // 7 --- I think ?
-
-          if (JSON.stringify(Q).indexOf(JSON.stringify(S1)) === -1 && S1.length > 0) {
-            Q.push(S1);
-            //MARCAT DE S FALS !
-            if (Final(S1)) {
-              F.push(S1);
-            }
-          }
-        }
-        });
-        marcat.push(S);
-      }
-      //console.log("Q===",JSON.stringify(Q))
-    }
-
-    console.log("DFA", dfa,Q,F);
-
-    this.props.passTable({
-      output:dfa,
-      output_States: Q,
-      alphabet:alphabet
+    //check
+    this.setState({
+      err: null
     })
+
+    var err = false
+
+    for (let i = 0; i < transitions.length; i++) {
+      for (let j = 0; j < transitions[i].length; j++) {
+        for (let k = 0; k < transitions[i][j].length; k++) {
+          if (transitions[i][j][k] > transitions.length - 1) {
+            err = true;
+            this.setState({
+              err: "The state q" + transitions[i][j][k] + " does not exist !"
+            })
+          }
+        }
+      }
+    }
+
+    if (!err) {
+      var dfa = [];
+
+      function CI(Q) {
+        // inchiderea la epsilon
+        //Q fiind o multime de stari pentru care verificam unde merge fiecare cu epsilon
+
+        //caz curent q0 = 0
+        //q0[ε] = [ q0 , 1 ] q0 != 1
+        var ci = [];
+
+        for (let i = 0; i < Q.length; i++) {
+          var q = Q[i];
+
+          if (typeof Q[i] == "string") {
+            var q = eval(Q[i].split(/[a-z]/)[1]);
+          }
+          if (ci.indexOf(q) === -1) {
+            ci.push(q);
+
+            if (ci.indexOf(transitions[q][eps]) === -1) {
+              //unde se duce q caz 0 cu epsilon caz 1
+              for (let j = 0; j < transitions[q][eps].length; j++) {
+                ci.push(transitions[q][eps][j]);
+              }
+            }
+          }
+        }
+        return ci;
+      }
+
+      function Final(q) {
+        // doar un simplu arary cu care verificam daca e sare finala sau nu
+        for (let i = 0; i < q.length; i++) {
+          if (states[i].match(/f/)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      function delta(q, a) {
+        a = alphabet.indexOf(a);
+        var delta = [];
+        for (let i = 0; i < q.length; i++) {
+          for (let j = 0; j < transitions[q[i]][a].length; j++) {
+            if (transitions[q[i]][a][j] !== undefined)
+              delta.push(transitions[q[i]][a][j]);
+          }
+        }
+        return delta;
+      }
+
+      var q0 = CI([states[0]]); // 1 --- stare initiala
+
+      var Q = [q0]; // 1 --- multime stari ...
+      var marcat = []; // 2 --- pusham ce marcam ...
+      var F = []; // 2 --- multime stari finale ...
+
+      // 3 ---
+      if (Final(q0)) {
+        F.push(q0);
+      }
+
+      // 4 ---
+      //Q.map(S => {
+      for (let x = 0; x < Q.length; x++) {
+        var S = Q[x];
+
+        if (marcat.indexOf(S) === -1) {
+          // 5 ---
+          alphabet.forEach(a => {
+            if (a !== "ε") {
+              //Avem un S'
+              var S1 = CI(delta(S, a));
+
+              if (dfa[Q.indexOf(S)] === undefined) {
+                dfa[Q.indexOf(S)] = []
+              }
+
+              dfa[Q.indexOf(S)][alphabet.indexOf(a)] = S1; // 7 --- I think ?
+
+              if (JSON.stringify(Q).indexOf(JSON.stringify(S1)) === -1 && S1.length > 0) {
+                Q.push(S1);
+                //MARCAT DE S FALS !
+                if (Final(S1)) {
+                  F.push(S1);
+                }
+              }
+            }
+          });
+          marcat.push(S);
+        }
+        //console.log("Q===",JSON.stringify(Q))
+      }
+
+      console.log("DFA", dfa, Q, F, q0);
+
+      this.props.passTable({
+        start_state: q0,
+        output: dfa,
+        output_States: Q,
+        alphabet: alphabet,
+        initial_states: states
+      })
+    }
 
   };
   removeRow = e => {
@@ -249,17 +306,17 @@ export default class Input_table extends React.Component {
                 <Table.HeaderCell className='HeaderClean' />
 
                 {this.state.alphabet.map((val, index) => (
-                  <Table.HeaderCell key={index} className='InputCell' textAlign='center'>
+                  <Table.HeaderCell key={index} className='InputCell cleanbg' textAlign='center'>
                     {val === "ε" ? (
-                      val
+                      <strong>{val}</strong>
                     ) : (
-                      <Input
-                        className='InputValue clean'
-                        id={index + "_alphabet"}
-                        value={this.state.alphabet[index]}
-                        onChange={this.updateEditable}
-                      />
-                    )}
+                        <Input
+                          className='InputValue clean'
+                          id={index + "_alphabet"}
+                          value={this.state.alphabet[index]}
+                          onChange={this.updateEditable}
+                        />
+                      )}
                   </Table.HeaderCell>
                 ))}
               </Table.Row>
@@ -267,7 +324,7 @@ export default class Input_table extends React.Component {
 
             <Table.Body>
               {this.state.states.map((val, index) => (
-                <Table.Row error={val.split(/\d/)[0] === "f"} positive={val.split(/\d/)[0] === "s"} key={index}>
+                <Table.Row key={index}>
                   <Table.Cell style={{ minWidth: "150px" }} id={index} className='InputCell' textAlign='center'>
                     <Input
                       id={index + "_editable"}
@@ -275,6 +332,7 @@ export default class Input_table extends React.Component {
                       className='InputValue state clean'
                       onChange={this.updateEditable}
                     />
+                    {/* {this.state.states[index]} */}
                   </Table.Cell>
 
                   {/**################################################################################################# */}
