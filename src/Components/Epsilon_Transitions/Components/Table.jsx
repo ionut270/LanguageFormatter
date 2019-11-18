@@ -1,6 +1,6 @@
 import React from "react";
 import { Table, Input, Button, Message } from "semantic-ui-react";
-
+import { STATUS_CODES } from "http";
 
 export default class Input_table extends React.Component {
   constructor(props) {
@@ -9,14 +9,16 @@ export default class Input_table extends React.Component {
       states: ["s0", "q1", "f2"],
       alphabet: ["a", "b", "ε"],
       transitions: [
-        ["s0", "q1", ""],
-        ["f2", "q1", "s0"],
-        ["f2", "s0", "f2"]
+        [[],     [0], [1]],
+        [[1, 2], [2], []],
+        [[],     [ ],  []]
       ],
       err: null,
-      visible: false,
+      visible: false
     };
   }
+
+  convertToNaturalLanguage = e => {};
 
   updateEditable = (e, { value, id }) => {
     console.log("Update Editable !");
@@ -38,7 +40,7 @@ export default class Input_table extends React.Component {
         let i = id.split(/:/)[0];
         let j = id.split(/:/)[1].split(/_/)[0];
 
-        state.transitions[i][j] = value;
+        state.transitions[i][j] = eval(value.split(/[a-z]/)[1]);
         this.setState(state);
         break;
 
@@ -56,19 +58,19 @@ export default class Input_table extends React.Component {
     var alphabet = this.state.alphabet;
     alphabet.push("");
 
-    var spliced = alphabet.splice(0, alphabet.length - 2)
+    var spliced = alphabet.splice(0, alphabet.length - 2);
     spliced.push("");
     spliced.push("ε");
 
     var transitions = this.state.transitions;
 
-    for(let i=0; i< transitions.length; i++){
+    for (let i = 0; i < transitions.length; i++) {
       transitions[i].push("");
     }
 
     this.setState({
       alphabet: spliced,
-      transitions:transitions
+      transitions: transitions
     });
   };
 
@@ -87,194 +89,109 @@ export default class Input_table extends React.Component {
     });
   };
   convertAutomate = e => {
-
     console.log("Convert Autoamte !");
-
-    this.setState({
-      output: null,
-      output_States: null
-    })
-
-    //First check if the automate is valid !
-    //All the variables should have a destination and that destination should be a valid one
-
-    /*****************************************************Validation*************************************************************************/
-
-    let valid = true;
 
     var states = this.state.states;
     var alphabet = this.state.alphabet;
     var transitions = this.state.transitions;
+    var eps = alphabet.indexOf("ε");
 
-    var eps = alphabet.indexOf("ε")
+    var dfa = [];
 
-    if (transitions.length === states.length) {
-      for (let i = 0; i < transitions.length; i++) {
+    function CI(Q) {
+      // inchiderea la epsilon
+      //Q fiind o multime de stari pentru care verificam unde merge fiecare cu epsilon
 
-        if (transitions[i].length === alphabet.length) {
+      //caz curent q0 = 0
+      //q0[ε] = [ q0 , 1 ] q0 != 1
+      var ci = [];
 
-          //verificam existennta fiecarei stari-
-          for (let j = 0; j < transitions[i].length; j++) {
-            if (states.indexOf(transitions[i][j]) === -1) {
-              //console.log("OK : State > ", eps, i, j)
-              if (j !== eps) {
-                valid = false;
-                this.setState({
-                  err: "The state " + transitions[i][j] + "does not exist !"
-                })
-              } else {
-                valid = true
-                this.setState({
-                  err: null
-                })
-              }
+      for (let i = 0; i < Q.length; i++) {
+        var q = Q[i];
+
+        if (typeof Q[i] == "string") {
+          var q = eval(Q[i].split(/[a-z]/)[1]);
+        }
+        if (ci.indexOf(q) === -1) {
+          ci.push(q);
+
+          if (ci.indexOf(transitions[q][eps]) === -1) {
+            //unde se duce q caz 0 cu epsilon caz 1
+            for (let j = 0; j < transitions[q][eps].length; j++) {
+              ci.push(transitions[q][eps][j]);
             }
           }
-        } else {
-          valid = false;
-          this.setState({
-            err: "1 Please fill the whole table with values !"
-          })
         }
       }
-    } else {
-      valid = false;
-      this.setState({
-        err: "2 Please fill the whole table with values !"
-      })
+      return ci;
     }
 
-    console.log(this.state.states,this.state.alphabet,this.state.transitions)
-
-    if (valid === true) {
-
-      //console.log("OK : Passed validation !");
-
-      this.setState({
-        err: null
-      })
-
-      var nfa_states = [
-        [states[0]]
-      ];
-
-      var firstState = [states[0]] //firstState[0] = "s1"
-
-
-      var output = [];
-
-
-      for (let m = 0; m < nfa_states.length; m++) {
-
-        var line = []
-        for (let j = 0; j < alphabet.length - 1; j++) { // 0 - a
-          var result = []
-
-          for (let i = 0; i < nfa_states[m].length; i++) { // 0 - s1 pot fi mai multe
-            var position = states.indexOf(nfa_states[m][i]); // 0
-            if (result.indexOf(transitions[position][j]) === -1) {
-              result.push(transitions[position][j]); // transitions[0][0] = f2
-              //console.log("Found transition for variable > ", transitions[position][j])
-            } else {
-              //console.log("Attempted to push >", transitions[position][j], "In result > ", result)
-            }
-          }
-          // - inchiderea la epsilon -
-          var nonEpsLen = result.length
-          for (let i = 0; i < nonEpsLen; i++) {
-            // luam fiecare din astea si verificam unde merge cu epsilon si il adaugam la results
-
-            var position = states.indexOf(result[i]); // f2 => 2
-
-            // we need check if what we try to push isn't allready in our automate
-
-            if (transitions[position] && transitions[position][eps]) { // daca se duce undeva cu eps
-
-              if (result.indexOf(transitions[position][eps]) === -1) {
-                result.push(transitions[position][eps])
-                //console.log("New eps transition > [", transitions[position][eps], "] for > pos:", position, " > eps:", eps, " > res:", result[i], i)
-              }
-
-            } else {
-              if (!transitions[position]) {
-                //console.log("BAD : No transition > ", position, transitions[position])
-              } else {
-                //console.log("OK : No eps transition > ", position, transitions[position])
-              }
-            }
-          }
-          line.push(result);
-          //console.log("Result = [", result, "]");
-
-          var ln = ""
-          for (let i = 0; i < line.length; i++) {
-            ln += "[" + line[i] + "]"
-          }
-          //console.log("Current Line:>", ln)
-
-          //si avem si tranzitia la eps
-          //console.log("Next for this line !")
+    function Final(q) {
+      // doar un simplu arary cu care verificam daca e sare finala sau nu
+      for (let i = 0; i < q.length; i++) {
+        if (states[i].match(/f/)) {
+          return true;
         }
-        //console.log("Line = [", line, "]")
-        //console.log("Next line !")
-
-        for (let i = 0; i < line.length; i++) {
-
-          //needs further validation 
-          /**
-           * Take each individual state and check if it exists in the arr
-           */
-          let found = false;
-          for (let l = 0; l < nfa_states.length; l++) {
-            let counter = 0;
-            if (line[i].length === nfa_states[l].length) {
-              for (let k = 0; k < line[i].length; k++) {
-                if (nfa_states[l].indexOf(line[i][k]) !== -1) {
-                  //console.log("Checking if it exists ! > ", line[i][k], counter, "[", nfa_states[l].indexOf(line[i][k]), "]")
-                  counter++;
-                }
-              }
-            }
-            if (counter === line[i].length) {
-              //console.log("Found !")
-              found = true;
-            }
-          }
-
-
-          if (!found) {
-            nfa_states.push(line[i])
-            //console.log("OK : Adding a new state > ", line[i].sort(), i)
-          }
-
-        }
-        output.push(line);
-        var cns = ""
-        for (let i = 0; i < nfa_states.length; i++) {
-          cns += "[" + nfa_states[i] + "]"
-        }
-        //console.log("OK : Here are the states > ", cns)
       }
-
-      for (let i = 0; i < output.length; i++) {
-        var ln = "<"
-        for (let j = 0; j < output[i].length; j++) {
-          ln += output[i][j] + ">"
-        }
-        //console.log("[" + ln + "]");
-      }
-      var obj = {
-        alphabet: alphabet,
-        output: output,
-        output_States: nfa_states
-      }
-      this.props.passTable(obj)
-      // this.setState({
-      //   output: output,
-      //   output_States: nfa_states
-      // })
+      return false;
     }
 
+    function delta(q, a) {
+      a = alphabet.indexOf(a);
+      var delta = [];
+      for (let i = 0; i < q.length; i++) {
+        for (let j = 0; j < transitions[q[i]][a].length; j++) {
+          if(transitions[q[i]][a][j] !== undefined)
+          delta.push(transitions[q[i]][a][j]);
+        }
+      }
+      return delta;
+    }
+
+    var q0 = CI([states[0]]); // 1 --- stare initiala
+
+    var Q = [q0]; // 1 --- multime stari ...
+    var marcat = []; // 2 --- pusham ce marcam ...
+    var F = []; // 2 --- multime stari finale ...
+
+    // 3 ---
+    if (Final(q0)) {
+      F.push(q0);
+    }
+
+    // 4 ---
+    //Q.map(S => {
+    for(let x=0; x<Q.length; x++){  
+      var S = Q[x];
+
+      if (marcat.indexOf(S) === -1) {
+        // 5 ---
+        alphabet.forEach(a => {
+          if(a !== "ε"){
+          //Avem un S'
+          var S1 = CI(delta(S, a));
+
+          if(dfa[Q.indexOf(S)] === undefined){
+            dfa[Q.indexOf(S)]  = []
+          }
+
+          dfa[Q.indexOf(S)][alphabet.indexOf(a)] = S1; // 7 --- I think ?
+
+          if (JSON.stringify(Q).indexOf(JSON.stringify(S1)) === -1 && S1.length > 0) {
+            Q.push(S1);
+            //MARCAT DE S FALS !
+            if (Final(S1)) {
+              F.push(S1);
+            }
+          }
+        }
+        });
+        marcat.push(S);
+      }
+      //console.log("Q===",JSON.stringify(Q))
+    }
+
+    console.log("DFA", dfa,Q,F);
   };
   removeRow = e => {
     var states = this.state.states;
@@ -286,8 +203,8 @@ export default class Input_table extends React.Component {
     this.setState({
       states: states,
       transitions: transitions
-    })
-  }
+    });
+  };
   removeCollumn = e => {
     var alphabet = this.state.alphabet;
     var transitions = this.state.transitions;
@@ -298,7 +215,6 @@ export default class Input_table extends React.Component {
     alphabet.pop();
     alphabet.pop();
     alphabet.push("ε");
-
 
     for (let i = 0; i < transitions.length; i++) {
       // var last = transitions[i][transitions[i].length - 1];
@@ -311,32 +227,32 @@ export default class Input_table extends React.Component {
     this.setState({
       alphabet: alphabet,
       transitions: transitions
-    })
-    console.log(alphabet, transitions)
-  }
+    });
+    console.log(alphabet, transitions);
+  };
   render() {
     return (
-      <div className="ColumnButton">
-        <Button color="red" circular icon="minus" onClick={this.removeRow} />
-        <div className="RowButton">
-          <Button color="red" circular icon="minus" style={{ marginRight: "1em" }} onClick={this.removeCollumn} />
-          <Table celled className="InputTable">
+      <div className='ColumnButton'>
+        <Button color='red' circular icon='minus' onClick={this.removeRow} />
+        <div className='RowButton'>
+          <Button color='red' circular icon='minus' style={{ marginRight: "1em" }} onClick={this.removeCollumn} />
+          <Table celled className='InputTable'>
             <Table.Header>
               <Table.Row>
-                <Table.HeaderCell className="HeaderClean" />
+                <Table.HeaderCell className='HeaderClean' />
 
                 {this.state.alphabet.map((val, index) => (
-                  <Table.HeaderCell
-                    key={index}
-                    className="InputCell"
-                    textAlign="center"
-                  >
-                    {val === "ε" ? val : <Input
-                      className="InputValue clean"
-                      id={index + "_alphabet"}
-                      value={this.state.alphabet[index]}
-                      onChange={this.updateEditable}
-                    />}
+                  <Table.HeaderCell key={index} className='InputCell' textAlign='center'>
+                    {val === "ε" ? (
+                      val
+                    ) : (
+                      <Input
+                        className='InputValue clean'
+                        id={index + "_alphabet"}
+                        value={this.state.alphabet[index]}
+                        onChange={this.updateEditable}
+                      />
+                    )}
                   </Table.HeaderCell>
                 ))}
               </Table.Row>
@@ -345,16 +261,11 @@ export default class Input_table extends React.Component {
             <Table.Body>
               {this.state.states.map((val, index) => (
                 <Table.Row error={val.split(/\d/)[0] === "f"} positive={val.split(/\d/)[0] === "s"} key={index}>
-                  <Table.Cell
-                    style={{ minWidth: "150px" }}
-                    id={index}
-                    className="InputCell"
-                    textAlign="center"
-                  >
+                  <Table.Cell style={{ minWidth: "150px" }} id={index} className='InputCell' textAlign='center'>
                     <Input
                       id={index + "_editable"}
                       value={this.state.states[index]}
-                      className="InputValue state clean"
+                      className='InputValue state clean'
                       onChange={this.updateEditable}
                     />
                   </Table.Cell>
@@ -362,13 +273,9 @@ export default class Input_table extends React.Component {
                   {/**################################################################################################# */}
 
                   {this.state.alphabet.map((val, index2) => (
-                    <Table.HeaderCell
-                      key={index2}
-                      className="InputCell"
-                      textAlign="center"
-                    >
+                    <Table.HeaderCell key={index2} className='InputCell' textAlign='center'>
                       <Input
-                        className="InputValue clean"
+                        className='InputValue clean'
                         id={index + ":" + index2 + "_InputValue"}
                         value={this.state.transitions[index][index2]}
                         onChange={this.updateEditable}
@@ -380,32 +287,21 @@ export default class Input_table extends React.Component {
             </Table.Body>
           </Table>
 
-          <Button
-            style={{ marginLeft: "1em" }}
-            primary
-            circular
-            icon="plus"
-            onClick={this.addCollumn}
-          />
+          <Button style={{ marginLeft: "1em" }} primary circular icon='plus' onClick={this.addCollumn} />
         </div>
 
-        <Button primary circular icon="plus" onClick={this.addRow} />
+        <Button primary circular icon='plus' onClick={this.addRow} />
 
-        <Button
-          primary
-          style={{ marginTop: "1em" }}
-          onClick={this.convertAutomate}
-        >
+        <Button primary style={{ marginTop: "1em" }} onClick={this.convertAutomate}>
           {" "}
           &lt; Convert &gt;{" "}
         </Button>
-        {
-          this.state.err ?
-            <Message negative>
-              <Message.Header>We are sorry we cannot convert this automate</Message.Header>
-              <p>{this.state.err}</p>
-            </Message> : null
-        }
+        {this.state.err ? (
+          <Message negative>
+            <Message.Header>We are sorry we cannot convert this automate</Message.Header>
+            <p>{this.state.err}</p>
+          </Message>
+        ) : null}
       </div>
     );
   }
