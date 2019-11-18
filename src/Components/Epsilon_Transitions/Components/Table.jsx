@@ -9,7 +9,7 @@ export default class Input_table extends React.Component {
       states: ["s0", "q1", "f2"],
       alphabet: ["a", "b", "ε"],
       transitions: [
-        [[],     [0], [1]],
+        [[],     [0], []],
         [[1, 2], [2], []],
         [[],     [ ],  []]
       ],
@@ -192,6 +192,13 @@ export default class Input_table extends React.Component {
     }
 
     console.log("DFA", dfa,Q,F);
+
+    this.props.passTable({
+      output:dfa,
+      output_States: Q,
+      alphabet:alphabet
+    })
+
   };
   removeRow = e => {
     var states = this.state.states;
