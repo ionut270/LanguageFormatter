@@ -1,3 +1,6 @@
+
+# NEW ! First follow algorithms 
+
 # LanguageFormatter http://students.info.uaic.ro/~ionut.oancea/
 
 E-NFA to DFA automata convertor
