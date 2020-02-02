@@ -1,3 +1,4 @@
+/*eslint no-eval: "off"*/
 import React from "react";
 import { Table, Input, Button, Message } from "semantic-ui-react";
 
@@ -352,12 +353,12 @@ export default class Input_table extends React.Component {
             </Table.Body>
           </Table>
 
-          <Button style={{ marginLeft: "1em" }} primary circular icon='plus' onClick={this.addCollumn} />
+          <Button style={{ marginLeft: "1em" }} color="orange" circular icon='plus' onClick={this.addCollumn} />
         </div>
 
-        <Button primary circular icon='plus' onClick={this.addRow} />
+        <Button color="orange" circular icon='plus' onClick={this.addRow} />
 
-        <Button primary style={{ marginTop: "1em" }} onClick={this.convertAutomate}>
+        <Button color="orange" style={{ marginTop: "1em" }} onClick={this.convertAutomate}>
           {" "}
           &lt; Convert &gt;{" "}
         </Button>

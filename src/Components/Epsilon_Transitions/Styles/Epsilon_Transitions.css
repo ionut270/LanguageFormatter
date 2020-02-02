@@ -109,7 +109,7 @@ div#root {
     background-color: white;
 }
 
-button.ui.circular.icon.primary.button.SidebarHandler {
+button.ui.circular.icon.button.SidebarHandler {
     z-index: 1000;
     position: absolute;
     bottom: 1em;
@@ -131,6 +131,10 @@ button.ui.circular.icon.primary.button.SidebarHandler {
 
 .Tooltips_button{
     margin-bottom: 1em !important;
+    position: absolute;
+    top: .5em;
+    right: 13em;
+
 }
 button.ui.circular.primary.button.Tooltips_button {
     padding-bottom: 0.8em;

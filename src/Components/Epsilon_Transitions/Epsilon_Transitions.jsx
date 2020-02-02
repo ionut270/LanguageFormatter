@@ -14,8 +14,7 @@ export default class Epsilon_Transitions extends React.Component {
     super(props);
     this.state = {
       input: [],
-      output: [],
-
+      // output: [],
       output: null,
       visible: false,
       visibleExplanation: false
@@ -50,13 +49,7 @@ export default class Epsilon_Transitions extends React.Component {
     return (
       <div className="Body">
         <div className="Tables">
-          <Button primary circular className="Tooltips_button" onClick={this.showTooltips}>How to use</Button>
-          <Button secondary size="large" className="GithuButton" circular onClick={
-            () => {
-              window.open("https://github.com/ionut270/LanguageFormatter");
-              this.forceUpdate();
-            }
-          }><Icon name='github' size='large' /></Button>
+          <Button color="orange" size="mini" circular className="Tooltips_button" onClick={this.showTooltips}>How to use</Button>
           <Sidebar.Pushable className="sidebarWithExplaination">
 
 
@@ -98,7 +91,7 @@ export default class Epsilon_Transitions extends React.Component {
           {this.state.inputTable !== null ?
             <Sidebar.Pushable as={Segment} className="Sidebaaar">
 
-              <Button className="SidebarHandler" icon={this.state.visible ? "arrow left" : "arrow right"} primary circular onClick={this.handleResultDisplay} />
+              <Button className="SidebarHandler" icon={this.state.visible ? "arrow left" : "arrow right"} color="orange" circular onClick={this.handleResultDisplay} />
 
               <Sidebar
                 as={Segment}

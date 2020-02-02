@@ -1,3 +1,15 @@
 .Page_Header {
   border-radius: 0 !important;
+  width: 100% !important;
+  display: flex;
+  justify-content: space-between;
+}
+.coffeButton{
+  position: absolute;
+  right: 1em;
+  top: .5em;
+}
+.MenuItems{
+  display: flex;
+  flex-flow: row;
 }
